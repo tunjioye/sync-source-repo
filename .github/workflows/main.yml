@@ -1,0 +1,36 @@
+name: sync repo with destination repo
+
+on:
+  push:
+    branches:
+      - '**' # matches every branch
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    # - uses: actions/checkout@v2
+    #   with:
+    #     token: ${{ secrets.ACCESS_TOKEN }}
+    - name: Run sync code
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      if: env.ACCESS_TOKEN != null
+      run : |
+          echo "[LOG] Clone sync-source-repo"
+          git clone https://github.com/tunjioye/sync-source-repo.git temp
+          cd temp
+
+          echo "[LOG] Setup global config"
+          git config --global user.email "${{ secrets.USER_EMAIL }}"
+          git config --global user.name "${{ secrets.USER_NAME }}"
+
+          echo "[LOG] Add remote upstream repository"
+          git remote add upstream https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/tunjioye/sync-dest-repo.git
+
+          echo "[LOG] Force push all branches to upstream repo"
+          git push --all upstream -f
+
+          echo "[LOG] Remove folder / Clean up"
+          cd ..
+          rm -rf temp
