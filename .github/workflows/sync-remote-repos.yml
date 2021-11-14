@@ -14,23 +14,23 @@ jobs:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
       if: env.SYNC_ACCESS_TOKEN != null
       run : |
-          echo "[LOG] Clone source repo"
-          git clone https://github.com/$GITHUB_REPOSITORY.git temp
-          cd temp
+        echo "[LOG] Clone source repo"
+        git clone https://github.com/$GITHUB_REPOSITORY.git temp
+        cd temp
 
-          echo "[LOG] Setup global config"
-          git config --global user.email "${{ secrets.SYNC_USER_EMAIL }}"
-          git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
+        echo "[LOG] Setup global config"
+        git config --global user.email "${{ secrets.SYNC_USER_EMAIL }}"
+        git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
 
-          echo "[LOG] Add destination repo as remote upstream repo"
-          git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
+        echo "[LOG] Add destination repo as remote upstream repo"
+        git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
 
-          echo "[LOG] Delete origin HEAD refspec && Force push all branches to upstream repo"
-          git remote set-head origin --delete && git push upstream refs/remotes/origin/*:refs/heads/* -f
+        echo "[LOG] Delete origin HEAD refspec && Force push all branches to upstream repo"
+        git remote set-head origin --delete && git push upstream refs/remotes/origin/*:refs/heads/* -f
 
-          # echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
-          # git push upstream refs/remotes/origin/$GITHUB_REF_NAME:refs/heads/$GITHUB_REF_NAME -f
+        # echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
+        # git push upstream refs/remotes/origin/$GITHUB_REF_NAME:refs/heads/$GITHUB_REF_NAME -f
 
-          echo "[LOG] Remove folder / Clean up"
-          cd ..
-          rm -rf temp
+        echo "[LOG] Remove folder / Clean up"
+        cd ..
+        rm -rf temp
