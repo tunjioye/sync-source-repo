@@ -15,7 +15,7 @@ jobs:
       if: env.ACCESS_TOKEN != null
       run : |
           echo "[LOG] Clone source repo"
-          git clone https://github.com/tunjioye/sync-source-repo.git temp
+          git clone https://github.com/$GITHUB_REPOSITORY.git temp
           cd temp
 
           echo "[LOG] Setup global config"
