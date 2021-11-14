@@ -26,8 +26,17 @@ jobs:
         echo "[LOG] Write access token to token.txt file"
         echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt
 
-        echo "[LOG] Login with GitHub Cli && Merge PR using GitHub Cli"
-        gh auth login --with-token < token.txt && gh pr merge ${{ github.event.pull_request.number }} -m
+        echo "[LOG] Login with GitHub Cli using token.txt file && Close PR using GitHub Cli"
+        gh auth login --with-token < token.txt && gh pr close ${{ github.event.pull_request.number }}
+
+        echo "[LOG] Switch to base_ref branch"
+        git switch ${{ github.base_ref }}
+
+        echo "[LOG] Merge head_ref branch to base_ref branch with --no-commit flag"
+        git merge ${{ github.head_ref }} --no-commit
+
+        echo "[LOG] Force push base_ref branch to origin"
+        git push origin ${{ github.base_ref }} -f
 
         echo "[LOG] Remove folder / Clean up"
         cd ..
