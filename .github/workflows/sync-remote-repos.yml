@@ -26,7 +26,7 @@ jobs:
           git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
 
           echo "[LOG] Force push all branches to upstream repo"
-          git push --all upstream -f
+          git push --all upstream -f -u
 
           echo "[LOG] Remove folder / Clean up"
           cd ..
