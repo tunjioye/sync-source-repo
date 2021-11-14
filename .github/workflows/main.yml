@@ -9,15 +9,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-    # - uses: actions/checkout@v2
-    #   with:
-    #     token: ${{ secrets.ACCESS_TOKEN }}
-    - name: Run sync code
+    - name: Sync source repo with destination repo
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       if: env.ACCESS_TOKEN != null
       run : |
-          echo "[LOG] Clone sync-source-repo"
+          echo "[LOG] Clone source repo"
           git clone https://github.com/tunjioye/sync-source-repo.git temp
           cd temp
 
@@ -25,7 +22,7 @@ jobs:
           git config --global user.email "${{ secrets.USER_EMAIL }}"
           git config --global user.name "${{ secrets.USER_NAME }}"
 
-          echo "[LOG] Add remote upstream repository"
+          echo "[LOG] Add destination repo as remote upstream repo"
           git remote add upstream https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/tunjioye/sync-dest-repo.git
 
           echo "[LOG] Force push all branches to upstream repo"
