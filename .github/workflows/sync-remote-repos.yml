@@ -25,7 +25,7 @@ jobs:
           echo "[LOG] Add destination repo as remote upstream repo"
           git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
 
-          echo "[LOG] Force push all branches to upstream repo"
+          echo "[LOG] Delete origin HEAD refspec && Force push all branches to upstream repo"
           git remote set-head origin --delete && git push upstream refs/remotes/origin/*:refs/heads/* -f
 
           # echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
