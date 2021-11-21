@@ -19,10 +19,6 @@ jobs:
         git clone https://github.com/$GITHUB_REPOSITORY.git temp
         cd temp
 
-        echo "[LOG] Setup global config"
-        git config --global user.email "${{ secrets.SYNC_USER_EMAIL }}"
-        git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
-
         echo "[LOG] Write access token to token.txt file"
         echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt
 
