@@ -16,8 +16,7 @@ jobs:
       if: env.SYNC_ACCESS_TOKEN != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved')
       run : |
         echo "[LOG] Clone source repo"
-        git clone https://github.com/$GITHUB_REPOSITORY.git temp
-        cd temp
+        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Write access token to token.txt file"
         echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt

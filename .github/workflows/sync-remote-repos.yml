@@ -16,8 +16,7 @@ jobs:
       if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_DEST_REPO != null
       run : |
         echo "[LOG] Clone source repo"
-        git clone https://github.com/$GITHUB_REPOSITORY.git temp
-        cd temp
+        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Add destination repo as remote upstream repo"
         git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
