@@ -12,7 +12,8 @@ jobs:
     - name: Sync source repo with destination repo
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-      if: env.SYNC_ACCESS_TOKEN != null
+        SYNC_DEST_REPO: ${{ secrets.SYNC_DEST_REPO }}
+      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_DEST_REPO != null
       run : |
         echo "[LOG] Clone source repo"
         git clone https://github.com/$GITHUB_REPOSITORY.git temp
@@ -27,9 +28,6 @@ jobs:
 
         echo "[LOG] Delete origin HEAD refspec && Force push all branches to upstream repo"
         git remote set-head origin --delete && git push upstream refs/remotes/origin/*:refs/heads/* -f
-
-        # echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
-        # git push upstream refs/remotes/origin/$GITHUB_REF_NAME:refs/heads/$GITHUB_REF_NAME -f
 
         echo "[LOG] Remove folder / Clean up"
         cd ..
