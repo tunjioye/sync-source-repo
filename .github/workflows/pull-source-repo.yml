@@ -1,0 +1,42 @@
+name: sync repo with source repo
+
+on:
+  schedule:
+    - cron:  '*/10 * * * *' # every 10 minutes
+  workflow_dispatch:
+    inputs:
+      SYNC_SKIP_PATTERN:
+        description: Sync Skip Pattern
+        default: pull-source-repo
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: pull source repo into this repo
+      env:
+        SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
+        SYNC_SOURCE_REPO: ${{ secrets.SYNC_SOURCE_REPO }}
+      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_SOURCE_REPO != null
+      run : |
+        echo "[LOG] Clone this repo"
+        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
+
+        echo "[LOG] Add source repo as remote upstream repo"
+        git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_SOURCE_REPO }}.git
+
+        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN"
+        git fetch --all && git checkout --detach -q
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch --delete branchname
+
+        echo "[LOG] Checkout all branches not matching SYNC_SKIP_PATTERN"
+        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
+          git branch --track "${branch##*/}" "$branch"
+        done
+
+        echo "[LOG] Force push all branches to origin"
+        git push origin --all --force
+
+        echo "[LOG] Remove folder / Clean up"
+        cd .. && rm -rf temp
