@@ -25,5 +25,4 @@ jobs:
         git remote set-head origin --delete && git push upstream refs/remotes/origin/*:refs/heads/* -f
 
         echo "[LOG] Remove folder / Clean up"
-        cd ..
-        rm -rf temp
+        cd .. && rm -rf temp

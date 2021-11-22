@@ -40,5 +40,4 @@ jobs:
         git push origin ${{ github.base_ref }} -f
 
         echo "[LOG] Remove folder / Clean up"
-        cd ..
-        rm -rf temp
+        cd .. && rm -rf temp
