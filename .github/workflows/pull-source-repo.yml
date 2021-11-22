@@ -7,7 +7,7 @@ on:
     inputs:
       SYNC_SKIP_PATTERN:
         description: Sync Skip Pattern
-        default: pull-source-repo
+        default: main # will skip branches containing the work "main"
         required: true
       DEFAULT_BRANCH:
         description: Default Branch
