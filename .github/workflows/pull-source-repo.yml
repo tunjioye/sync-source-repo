@@ -1,13 +1,17 @@
 name: sync repo with source repo
 
 on:
-  schedule:
-    - cron:  '*/10 * * * *' # every 10 minutes
+  # schedule:
+  #   - cron:  '*/10 * * * *' # every 10 minutes
   workflow_dispatch:
     inputs:
       SYNC_SKIP_PATTERN:
         description: Sync Skip Pattern
         default: pull-source-repo
+        required: true
+      DEFAULT_BRANCH:
+        description: Default Branch
+        default: main
         required: true
 
 jobs:
@@ -26,12 +30,25 @@ jobs:
         echo "[LOG] Add source repo as remote upstream repo"
         git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_SOURCE_REPO }}.git
 
-        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN"
+        echo "[LOG] fetch all branches and detach head"
         git fetch --all && git checkout --detach -q
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch --delete branchname
 
-        echo "[LOG] Checkout all branches not matching SYNC_SKIP_PATTERN"
-        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
+        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
+
+        echo "[LOG] Checkout all branches on remote origin not matching SYNC_SKIP_PATTERN"
+        for branch in $(git branch --all | grep '^\s*remotes/origin' | grep -v remotes/origin/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
+          git branch --track "${branch##*/}" "$branch"
+        done
+
+        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN & DEFAULT_BRANCH on remote origin repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | grep -v ${{ github.event.inputs.DEFAULT_BRANCH }} | xargs -I branchname git push origin --delete branchname
+
+        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
+
+        echo "[LOG] Checkout all branches on remote upstream not matching SYNC_SKIP_PATTERN"
+        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v remotes/upstream/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
           git branch --track "${branch##*/}" "$branch"
         done
 
