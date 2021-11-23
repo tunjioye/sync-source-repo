@@ -44,10 +44,12 @@ jobs:
     - name: Auto merge on PR if comment contains /fast-forward
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-      if: env.SYNC_ACCESS_TOKEN != null && github.event.issue.pull_request && contains(github.event.comment.body, '/fast-forward')
+      if: env.SYNC_ACCESS_TOKEN != null
       run : |
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
+
+        echo {{ toJSON(github.event) }}
 
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.event.issue.pull_request.head.ref }}
