@@ -30,7 +30,7 @@ jobs:
         git fetch --all && git checkout --detach -q
 
         echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs git branch -D
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
 
         echo "[LOG] Checkout all branches on remote origin not matching SYNC_SKIP_PATTERN"
         for branch in $(git branch --all | grep '^\s*remotes/origin' | grep -v remotes/origin/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
@@ -38,10 +38,10 @@ jobs:
         done
 
         echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN & default branch on remote origin repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | grep -v ${{ github.event.repository.default_branch }} | xargs git push origin --delete
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | grep -v ${{ github.event.repository.default_branch }} | xargs -I branchname git push origin --delete branchname
 
         echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs git branch -D
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
 
         echo "[LOG] Checkout all branches on remote upstream not matching SYNC_SKIP_PATTERN"
         for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v remotes/upstream/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
