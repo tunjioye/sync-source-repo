@@ -26,8 +26,8 @@ jobs:
         echo "[LOG] Switch to base_ref branch"
         git switch ${{ github.event.pull_request.base.ref }}
 
-        echo "[LOG] Locally Merge head_ref branch to base_ref branch with --no-commit --ff-only flag"
-        git merge ${{ github.event.pull_request.head.ref }} --no-commit --ff-only
+        echo "[LOG] Locally Merge head_ref branch to base_ref branch with --no-commit flag"
+        git merge ${{ github.event.pull_request.head.ref }} --no-commit
 
         echo "[LOG] Update remote origin repo"
         git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
