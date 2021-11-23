@@ -7,6 +7,8 @@ on:
     types: [submitted] # other action types => edited, dismissed
   pull_request_review_comment:
     types: [created] # other action types => edited, deleted
+  issue_comment:
+    types: [created] # other action types => edited, deleted
 
 jobs:
   automerge:
