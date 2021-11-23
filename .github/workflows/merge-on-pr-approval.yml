@@ -5,6 +5,8 @@ on:
     types: [labeled] # other action types => opened, unlabeled
   pull_request_review:
     types: [submitted] # other action types => edited, dismissed
+  pull_request_review_comment:
+    types: [created] # other action types => edited, deleted
 
 jobs:
   automerge:
@@ -13,7 +15,7 @@ jobs:
     - name: Auto merge on PR if review state is approved or PR is labelled approved
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-      if: env.SYNC_ACCESS_TOKEN != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved')
+      if: env.SYNC_ACCESS_TOKEN != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved') || contains(github.event.comment.body, '/fast-forward')
       run : |
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
@@ -21,8 +23,8 @@ jobs:
         echo "[LOG] Write access token to token.txt file"
         echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt
 
-        echo "[LOG] Login with GitHub Cli using token.txt file && Close PR using GitHub Cli"
-        gh auth login --with-token < token.txt && gh pr close ${{ github.event.pull_request.number }}
+        echo "[LOG] Login with GitHub Cli using token.txt file && Merge PR using GitHub Cli"
+        gh auth login --with-token < token.txt && gh pr merge ${{ github.event.pull_request.number }} -m
 
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.head_ref }}
@@ -30,8 +32,8 @@ jobs:
         echo "[LOG] Switch to base_ref branch"
         git switch ${{ github.base_ref }}
 
-        echo "[LOG] Merge head_ref branch to base_ref branch with --no-commit flag"
-        git merge ${{ github.head_ref }} --no-commit
+        echo "[LOG] Locally Merge head_ref branch to base_ref branch with --no-commit --ff-only flag"
+        git merge ${{ github.head_ref }} --no-commit --ff-only
 
         echo "[LOG] Update remote origin repo"
         git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
