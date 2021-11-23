@@ -5,66 +5,35 @@ on:
     types: [labeled] # other action types => opened, unlabeled
   pull_request_review:
     types: [submitted] # other action types => edited, dismissed
-  issue_comment:
+  pull_request_review_comment:
     types: [created] # other action types => edited, deleted
 
 jobs:
   automerge:
     runs-on: ubuntu-latest
     steps:
-    - name: Auto merge on PR if review state is approved or PR is labelled approved
+    - name: Auto merge on PR if review state is approved or PR is labelled approved or PR comment contains /fast-forward
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-      if: env.SYNC_ACCESS_TOKEN != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved')
+      if: env.SYNC_ACCESS_TOKEN != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved' || contains(github.event.review.body, '/fast-forward'))
       run : |
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Switch to head_ref branch"
-        git switch ${{ github.head_ref }}
+        git switch ${{ github.event.pull_request.head.ref }}
 
         echo "[LOG] Switch to base_ref branch"
-        git switch ${{ github.base_ref }}
+        git switch ${{ github.event.pull_request.base.ref }}
 
         echo "[LOG] Locally Merge head_ref branch to base_ref branch with --no-commit --ff-only flag"
-        git merge ${{ github.head_ref }} --no-commit --ff-only
+        git merge ${{ github.event.pull_request.head.ref }} --no-commit --ff-only
 
         echo "[LOG] Update remote origin repo"
         git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
 
         echo "[LOG] Force push base_ref branch to origin"
-        git push origin ${{ github.base_ref }} -f
-
-        echo "[LOG] Remove folder / Clean up"
-        cd .. && rm -rf temp
-
-  automerge-on-comment:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Auto merge on PR if comment contains /fast-forward
-      env:
-        SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-      if: env.SYNC_ACCESS_TOKEN != null && github.event.issue.pull_request && contains(github.event.comment.body, '/fast-forward')
-      run : |
-        echo "[LOG] Clone source repo"
-        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
-
-        echo ${{ toJson(github) }}
-
-        echo "[LOG] Switch to head_ref branch"
-        git switch ${{ github.event.issue.pull_request.head.ref }}
-
-        echo "[LOG] Switch to base_ref branch"
-        git switch ${{ github.event.issue.pull_request.base.ref }}
-
-        echo "[LOG] Locally Merge head_ref branch to base_ref branch with --no-commit --ff-only flag"
-        git merge ${{ github.event.issue.pull_request.head.ref }} --no-commit --ff-only
-
-        echo "[LOG] Update remote origin repo"
-        git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
-
-        echo "[LOG] Force push base_ref branch to origin"
-        git push origin ${{ github.event.issue.pull_request.base.ref }} -f
+        git push origin ${{ github.event.pull_request.base.ref }} -f
 
         echo "[LOG] Remove folder / Clean up"
         cd .. && rm -rf temp
