@@ -49,7 +49,7 @@ jobs:
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
-        echo {{ toJSON(github.event) }}
+        echo {{ toJson(github) }}
 
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.event.issue.pull_request.head.ref }}
