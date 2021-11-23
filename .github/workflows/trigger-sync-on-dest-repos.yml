@@ -13,8 +13,9 @@ jobs:
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
         SYNC_WORKFLOW_URLS: ${{ secrets.SYNC_WORKFLOW_URLS }}
+        SYNC_WORKFLOW_REF: ${{ secrets.SYNC_WORKFLOW_REF }}
         SYNC_SKIP_PATTERN: ${{ secrets.SYNC_SKIP_PATTERN }}
-      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_WORKFLOW_URLS != null && env.SYNC_SKIP_PATTERN != null
+      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_WORKFLOW_URLS != null && env.SYNC_WORKFLOW_REF != null && env.SYNC_SKIP_PATTERN != null
       run : |
         echo "[LOG] split SYNC_WORKFLOW_URLS and curl  "
-        sed 's/, /\n/g' <<< '${{ secrets.SYNC_WORKFLOW_URLS }}' | xargs -I workflow_url curl workflow_url -X POST -H 'Authorization: Bearer ${{ secrets.SYNC_ACCESS_TOKEN }}' -H 'Content-Type: application/json' -H 'Accept: application/vnd.github.v3+json' -d '{"inputs":{"SYNC_SKIP_PATTERN": "${{ secrets.SYNC_SKIP_PATTERN }}"}}'
+        sed 's/, /\n/g' <<< '${{ secrets.SYNC_WORKFLOW_URLS }}' | xargs -I workflow_url curl workflow_url -X POST -H 'Authorization: Bearer ${{ github.token }}' -H 'Content-Type: application/json' -H 'Accept: application/vnd.github.v3+json' -d '{"ref": "${{ secrets.SYNC_WORKFLOW_REF }}", "inputs": {"SYNC_SKIP_PATTERN": "${{ secrets.SYNC_SKIP_PATTERN }}"}}'
