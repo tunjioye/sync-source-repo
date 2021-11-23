@@ -20,6 +20,10 @@ jobs:
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
+        echo "[LOG] Setup global config"
+        git config --global user.email "${{ secrets.SYNC_USER_EMAIL }}"
+        git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
+
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.event.pull_request.head.ref }}
 
