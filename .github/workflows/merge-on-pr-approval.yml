@@ -20,11 +20,11 @@ jobs:
         echo "[LOG] Clone source repo"
         git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
-        echo "[LOG] Write access token to token.txt file"
-        echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt
+        # echo "[LOG] Write access token to token.txt file"
+        # echo ${{ secrets.SYNC_ACCESS_TOKEN }} > token.txt
 
-        echo "[LOG] Login with GitHub Cli using token.txt file && Merge PR using GitHub Cli"
-        gh auth login --with-token < token.txt && gh pr merge ${{ github.event.pull_request.number }} -m
+        # echo "[LOG] Login with GitHub Cli using token.txt file && Merge PR using GitHub Cli"
+        # gh auth login --with-token < token.txt && gh pr merge ${{ github.event.pull_request.number }} -m
 
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.head_ref }}
