@@ -13,8 +13,7 @@ jobs:
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         WORKFLOW_URLS: ${{ secrets.WORKFLOW_URLS }}
-        SKIP_PATTERN: ${{ secrets.SKIP_PATTERN }}
-      if: env.ACCESS_TOKEN != null && env.WORKFLOW_URLS != null && env.SKIP_PATTERN != null
+      if: env.ACCESS_TOKEN != null && env.WORKFLOW_URLS != null
       run : |
         echo "[LOG] trigger say hello world"
         sed 's/, /\n/g' <<< '${{ secrets.WORKFLOW_URLS }}' | xargs -I workflow_url curl --location --request POST workflow_url \
