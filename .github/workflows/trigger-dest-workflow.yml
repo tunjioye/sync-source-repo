@@ -1,0 +1,24 @@
+name: trigger destination workflow
+
+on:
+  push:
+    branches:
+      - '**' # matches every branch
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: trigger destination workflow
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        WORKFLOW_URLS: ${{ secrets.WORKFLOW_URLS }}
+        SKIP_PATTERN: ${{ secrets.SKIP_PATTERN }}
+      if: env.ACCESS_TOKEN != null && env.WORKFLOW_URLS != null && env.SKIP_PATTERN != null
+      run : |
+        echo "[LOG] trigger say hello world"
+        sed 's/, /\n/g' <<< '${{ secrets.WORKFLOW_URLS }}' | xargs -I workflow_url curl --location --request POST workflow_url \
+          --header 'Accept: application/vnd.github.everest-preview+json' \
+          --header 'Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{"ref": "main"}'

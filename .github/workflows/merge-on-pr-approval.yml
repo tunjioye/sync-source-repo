@@ -14,17 +14,17 @@ jobs:
     steps:
     - name: Auto merge on PR if review state is approved or PR is labelled approved or PR comment contains /fast-forward
       env:
-        SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-        SYNC_USER_EMAIL: ${{ secrets.SYNC_USER_EMAIL }}
-        SYNC_USER_NAME: ${{ secrets.SYNC_USER_NAME }}
-      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_USER_EMAIL != null && env.SYNC_USER_NAME != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved' || contains(github.event.review.body, '/fast-forward'))
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        USER_EMAIL: ${{ secrets.USER_EMAIL }}
+        USER_NAME: ${{ secrets.USER_NAME }}
+      if: env.ACCESS_TOKEN != null && env.USER_EMAIL != null && env.USER_NAME != null && (github.event.review.state == 'approved' || github.event.label.name == 'approved' || contains(github.event.review.body, '/fast-forward'))
       run : |
         echo "[LOG] Clone source repo"
-        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
+        git clone https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Setup global config"
-        git config --global user.email "${{ secrets.SYNC_USER_EMAIL }}"
-        git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
+        git config --global user.email "${{ secrets.USER_EMAIL }}"
+        git config --global user.name "${{ secrets.USER_NAME }}"
 
         echo "[LOG] Switch to head_ref branch"
         git switch ${{ github.event.pull_request.head.ref }}
@@ -36,7 +36,7 @@ jobs:
         git merge ${{ github.event.pull_request.head.ref }} --no-commit --ff-only
 
         echo "[LOG] Update remote origin repo"
-        git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
+        git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
 
         echo "[LOG] Force push base_ref branch to origin"
         git push origin ${{ github.event.pull_request.base.ref }} -f

@@ -1,14 +1,6 @@
 name: sync repo with source repo
 
-on:
-  # schedule:
-  #   - cron:  '*/10 * * * *' # every 10 minutes
-  workflow_dispatch:
-    inputs:
-      SYNC_SKIP_PATTERN:
-        description: Sync Skip Pattern
-        default: main # will skip branches containing the work "main"
-        required: true
+on: workflow_dispatch
 
 jobs:
   sync:
@@ -16,35 +8,36 @@ jobs:
     steps:
     - name: pull source repo into this repo
       env:
-        SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
-        SYNC_SOURCE_REPO: ${{ secrets.SYNC_SOURCE_REPO }}
-      if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_SOURCE_REPO != null
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        SOURCE_REPO: ${{ secrets.SOURCE_REPO }}
+        SKIP_PATTERN: ${{ secrets.SKIP_PATTERN }}
+      if: env.ACCESS_TOKEN != null && env.SOURCE_REPO != null && env.SKIP_PATTERN != null
       run : |
         echo "[LOG] Clone this repo"
-        git clone https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
+        git clone https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Add source repo as remote upstream repo"
-        git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_SOURCE_REPO }}.git
+        git remote add upstream https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ secrets.SOURCE_REPO }}.git
 
         echo "[LOG] fetch all branches and detach head"
         git fetch --all && git checkout --detach -q
 
-        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
+        echo "[LOG] Delete all branches not matching SKIP_PATTERN on local repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ secrets.SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
 
-        echo "[LOG] Checkout all branches on remote origin not matching SYNC_SKIP_PATTERN"
-        for branch in $(git branch --all | grep '^\s*remotes/origin' | grep -v remotes/origin/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
+        echo "[LOG] Checkout all branches on remote origin not matching SKIP_PATTERN"
+        for branch in $(git branch --all | grep '^\s*remotes/origin' | grep -v remotes/origin/HEAD | grep -v ${{ secrets.SKIP_PATTERN }}); do
           git branch --track "${branch##*/}" "$branch"
         done
 
-        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN & default branch on remote origin repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | grep -v ${{ github.event.repository.default_branch }} | xargs -I branchname git push origin --delete branchname
+        echo "[LOG] Delete all branches not matching SKIP_PATTERN & default branch on remote origin repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ secrets.SKIP_PATTERN }} | grep -v ${{ github.event.repository.default_branch }} | xargs -I branchname git push origin --delete branchname
 
-        echo "[LOG] Delete all branches not matching SYNC_SKIP_PATTERN on local repo"
-        git branch | grep -v "* (HEAD detached at" | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
+        echo "[LOG] Delete all branches not matching SKIP_PATTERN on local repo"
+        git branch | grep -v "* (HEAD detached at" | grep -v ${{ secrets.SKIP_PATTERN }} | xargs -I branchname git branch -D branchname
 
-        echo "[LOG] Checkout all branches on remote upstream not matching SYNC_SKIP_PATTERN"
-        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v remotes/upstream/HEAD | grep -v ${{ github.event.inputs.SYNC_SKIP_PATTERN }}); do
+        echo "[LOG] Checkout all branches on remote upstream not matching SKIP_PATTERN"
+        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v remotes/upstream/HEAD | grep -v ${{ secrets.SKIP_PATTERN }}); do
           git branch --track "${branch##*/}" "$branch"
         done
 
