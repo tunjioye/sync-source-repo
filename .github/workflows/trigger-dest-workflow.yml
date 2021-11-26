@@ -3,21 +3,33 @@ name: trigger destination workflow
 on:
   push:
     branches:
-      - '**' # matches every branch
+      - "**" # matches every branch
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-    - name: trigger destination workflow
-      env:
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        WORKFLOW_URLS: ${{ secrets.WORKFLOW_URLS }}
-      if: env.ACCESS_TOKEN != null && env.WORKFLOW_URLS != null
-      run : |
-        echo "[LOG] trigger say hello world"
-        sed 's/, /\n/g' <<< '${{ secrets.WORKFLOW_URLS }}' | xargs -I workflow_url curl --location --request POST workflow_url \
-          --header 'Accept: application/vnd.github.everest-preview+json' \
-          --header 'Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}' \
-          --header 'Content-Type: application/json' \
-          --data-raw '{"ref": "main"}'
+      - name: trigger destination workflow
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          DEST_REPO: ${{ secrets.DEST_REPO }}
+          WORKFLOW_NAME: ${{ secrets.WORKFLOW_NAME }}
+        if: env.ACCESS_TOKEN != null && env.DEST_REPO != null && env.WORKFLOW_NAME != null
+        run: |
+          echo "[LOG] Download JQ"
+          curl -sS https://webinstall.dev/jq | bash
+
+          echo "[LOG] Extract Workflow URL and REF paramaters"
+          curl -XGET https://api.github.com/repos/$DEST_REPO/actions/workflows \
+            --header "'Authorization: Bearer $ACCESS_TOKEN'" \
+            --header 'Content-Type: application/json' \
+            > output.json
+
+          export $(cat output.json | jq -r --arg WORKFLOW_NAME "$WORKFLOW_NAME" \
+            'select(.workflows | length > 0) | .workflows[] | select(.name == $WORKFLOW_NAME) | {url, html_url} | "URL=\(.url) REF=\(.html_url)" | sub("(?<head>REF=).*\/blob\/(?<ref>.*)\/\\.github.*";"\(.head)\(.ref)")')
+
+          echo "[LOG] trigger $WORKFLOW_NAME"
+          curl --location --request POST "'$URL/dispatches'" \
+            --header "'Authorization: Bearer $ACCESS_TOKEN'" \
+            --header 'Content-Type: application/json' \
+            --data-raw "'{\"ref\": \"$REF\"}'"
