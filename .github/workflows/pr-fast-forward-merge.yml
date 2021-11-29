@@ -21,7 +21,7 @@ jobs:
         git clone https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
 
         echo "[LOG] Extract Pull Request paramaters from pull request url"
-          curl -XGET ${{ github.issue.pull_request.url }} \
+          curl -XGET "${{ github.event.issue.pull_request.url }}" \
             --header "Authorization: Bearer $ACCESS_TOKEN" \
             --header 'Content-Type: application/json' \
             > $PR_FILE
