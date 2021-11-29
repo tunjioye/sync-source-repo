@@ -18,7 +18,6 @@ if test -f "$OUTPUT_FILE"; then
     --data-raw "{\"ref\": \"$REF\"}" \
     > $FINAL_OUTPUT_FILE
 
-
   if test -f "$FINAL_OUTPUT_FILE"; then
     MESSAGE=$(jq < $FINAL_OUTPUT_FILE '.message')
 
