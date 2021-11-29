@@ -16,9 +16,6 @@ jobs:
           WORKFLOW_NAME: ${{ secrets.WORKFLOW_NAME }}
         if: env.ACCESS_TOKEN != null && env.DEST_REPO != null && env.WORKFLOW_NAME != null
         run: |
-          # echo "[LOG] Download JQ"
-          # curl -sS https://webinstall.dev/jq | bash
-
           echo "[LOG] Extract Workflow URL and REF paramaters"
           curl -XGET https://api.github.com/repos/$DEST_REPO/actions/workflows \
             --header "'Authorization: Bearer $ACCESS_TOKEN'" \
