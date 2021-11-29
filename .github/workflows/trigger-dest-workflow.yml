@@ -16,8 +16,8 @@ jobs:
           WORKFLOW_NAME: ${{ secrets.WORKFLOW_NAME }}
         if: env.ACCESS_TOKEN != null && env.DEST_REPO != null && env.WORKFLOW_NAME != null
         run: |
-          echo "[LOG] Download JQ"
-          curl -sS https://webinstall.dev/jq | bash
+          # echo "[LOG] Download JQ"
+          # curl -sS https://webinstall.dev/jq | bash
 
           echo "[LOG] Extract Workflow URL and REF paramaters"
           curl -XGET https://api.github.com/repos/$DEST_REPO/actions/workflows \
@@ -29,7 +29,7 @@ jobs:
             'select(.workflows | length > 0) | .workflows[] | select(.name == $WORKFLOW_NAME) | {url, html_url} | "URL=\(.url) REF=\(.html_url)" | sub("(?<head>REF=).*\/blob\/(?<ref>.*)\/\\.github.*";"\(.head)\(.ref)")')
 
           echo "[LOG] trigger $WORKFLOW_NAME"
-          curl --location --request POST "'$URL/dispatches'" \
-            --header "'Authorization: Bearer $ACCESS_TOKEN'" \
+          curl --location --request POST "$URL/dispatches" \
+            --header "Authorization: Bearer $ACCESS_TOKEN" \
             --header 'Content-Type: application/json' \
-            --data-raw "'{\"ref\": \"$REF\"}'"
+            --data-raw "{\"ref\": \"$REF\"}"

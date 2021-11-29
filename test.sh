@@ -13,7 +13,7 @@ echo "[LOG] URL & REF"
 echo $URL
 echo $REF
 
-curl --location --request POST $URL/dispatches \
-  --header "'Authorization: Bearer $ACCESS_TOKEN'" \
+curl --location --request POST "$URL/dispatches" \
+  --header "Authorization: Bearer $ACCESS_TOKEN" \
   --header 'Content-Type: application/json' \
-  --data-raw "'{\"ref\": \"$REF\"}'"
+  --data-raw "{\"ref\": \"$REF\"}"
