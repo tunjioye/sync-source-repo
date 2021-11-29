@@ -13,7 +13,7 @@ if test -f "$OUTPUT_FILE"; then
   'select(.workflows | length > 0) | .workflows[] | select(.name == $WORKFLOW_NAME) | {url, html_url} | "URL=\(.url) REF=\(.html_url)" | sub("(?<head>REF=).*\/blob\/(?<ref>.*)\/\\.github.*";"\(.head)\(.ref)")')
 
   curl --location --request POST "$URL/dispatches" \
-    --header "'Authorization: Bearer $ACCESS_TOKEN'" \
+    --header "Authorization: Bearer $ACCESS_TOKEN" \
     --header 'Content-Type: application/json' \
     --data-raw "{\"ref\": \"$REF\"}" \
     > $FINAL_OUTPUT_FILE
@@ -29,6 +29,7 @@ if test -f "$OUTPUT_FILE"; then
     else
       echo "FAILED to trigger workflow."
       echo "Error Message => $MESSAGE"
+      cat $FINAL_OUTPUT_FILE
       exit 1
     fi
 
