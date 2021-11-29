@@ -1,0 +1,56 @@
+name: PR fast forward merge
+
+on:
+  issue_comment:
+    types: [created] # other action types => edited, deleted
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Auto merge on PR if PR issue comment contains /fast-forward
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        USER_EMAIL: ${{ secrets.USER_EMAIL }}
+        USER_NAME: ${{ secrets.USER_NAME }}
+      if: env.ACCESS_TOKEN != null && contains(github.event.comment.body, '/fast-forward')
+      run : |
+        PR_FILE=pr.json
+
+        echo "[LOG] Clone source repo"
+        git clone https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git temp && cd temp
+
+        echo "[LOG] Extract Pull Request paramaters from pull request url"
+          curl -XGET ${{ github.issue.pull_request.url }} \
+            --header "Authorization: Bearer $ACCESS_TOKEN" \
+            --header 'Content-Type: application/json' \
+            > $PR_FILE
+
+        if test -f "$PR_FILE"; then
+          export $(cat $PR_FILE | jq -r '"BASE_REF=\(.base.ref) HEAD_REF=\(.head.ref)"')
+
+          echo "[LOG] Setup global config"
+          git config --global user.email "${{ secrets.USER_EMAIL }}"
+          git config --global user.name "${{ secrets.USER_NAME }}"
+
+          echo "[LOG] Switch to HEAD_REF branch"
+          git switch $HEAD_REF
+
+          echo "[LOG] Switch to BASE_REF branch"
+          git switch $BASE_REF
+
+          echo "[LOG] Locally Merge HEAD_REF branch to BASE_REF branch with --no-commit --ff-only flag"
+          git merge $HEAD_REF --no-commit --ff-only
+
+          echo "[LOG] Update remote origin repo"
+          git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
+
+          echo "[LOG] Force push BASE_REF branch to origin"
+          git push origin $BASE_REF -f
+
+          echo "[LOG] Remove folder / Clean up"
+          cd .. && rm -rf temp
+        else
+          echo "$PR_FILE does not exist."
+          exit 1
+        fi
