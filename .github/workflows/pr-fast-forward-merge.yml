@@ -39,6 +39,9 @@ jobs:
           echo "[LOG] Switch to BASE_REF branch"
           git switch $BASE_REF
 
+          URL="https://api.github.com/repos/${{ github.repository }}/statuses/$SHA"
+          TARGET_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
           echo "[LOG] Locally Merge HEAD_REF branch to BASE_REF branch with --no-commit --ff-only flag"
           if [ git merge $HEAD_REF --no-commit --ff-only ]; then
 
@@ -48,17 +51,26 @@ jobs:
             echo "[LOG] Force push BASE_REF branch to origin"
             git push origin $BASE_REF -f
 
-          else
-            URL="https://api.github.com/repos/${{ github.repository }}/statuses/$SHA"
-            TARGET_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            curl --location --request POST "$URL" \
+              --header "Authorization: Bearer $ACCESS_TOKEN" \
+              --header 'Content-Type: application/json' \
+              --data-raw "{
+                \"state\": \"success\",
+                \"context\": \"merge fast forward successful\",
+                \"description\": \"PR fast forward workflow success\",
+                \"target_url\": \"$TARGET_URL\"
+              }"
 
+            echo "SUCCESS => PR fast forward success."
+            exit 0
+          else
             curl --location --request POST "$URL" \
               --header "Authorization: Bearer $ACCESS_TOKEN" \
               --header 'Content-Type: application/json' \
               --data-raw "{
                 \"state\": \"failure\",
                 \"context\": \"failed to fast forward\",
-                \"description\": \"PR fast forward workflow error\",
+                \"description\": \"unable to fast forward PR\",
                 \"target_url\": \"$TARGET_URL\"
               }"
 
