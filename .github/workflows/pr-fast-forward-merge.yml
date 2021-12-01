@@ -13,7 +13,7 @@ jobs:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         USER_EMAIL: ${{ secrets.USER_EMAIL }}
         USER_NAME: ${{ secrets.USER_NAME }}
-      if: env.ACCESS_TOKEN != null && contains(github.event.comment.body, '/fast-forward')
+      if: env.ACCESS_TOKEN != null && github.event.issue.pull_request && contains(github.event.comment.body, '/fast-forward')
       run : |
         PR_FILE=pr.json
 
@@ -40,13 +40,31 @@ jobs:
           git switch $BASE_REF
 
           echo "[LOG] Locally Merge HEAD_REF branch to BASE_REF branch with --no-commit --ff-only flag"
-          git merge $HEAD_REF --no-commit --ff-only
+          if [[ git merge $HEAD_REF --no-commit --ff-only ]]; then
 
-          echo "[LOG] Update remote origin repo"
-          git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
+            echo "[LOG] Update remote origin repo"
+            git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
 
-          echo "[LOG] Force push BASE_REF branch to origin"
-          git push origin $BASE_REF -f
+            echo "[LOG] Force push BASE_REF branch to origin"
+            git push origin $BASE_REF -f
+
+          else
+            URL=https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}
+            TARGET_URL=https://github.com/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true
+
+            curl --location --request POST "$URL" \
+              --header "Authorization: Bearer $ACCESS_TOKEN" \
+              --header 'Content-Type: application/json' \
+              --data-raw '{
+                "state": "failure",
+                "context": "failed to fast forward",
+                "description": "PR fast forward workflow error",
+                "target_url": "$TARGET_URL"
+              }'
+
+            echo "ERROR => PR fast forward error."
+            exit 1
+          fi
 
           echo "[LOG] Remove folder / Clean up"
           cd .. && rm -rf temp
