@@ -40,7 +40,7 @@ jobs:
           git switch $BASE_REF
 
           echo "[LOG] Locally Merge HEAD_REF branch to BASE_REF branch with --no-commit --ff-only flag"
-          if [[ git merge $HEAD_REF --no-commit --ff-only ]]; then
+          if [ git merge $HEAD_REF --no-commit --ff-only ]; then
 
             echo "[LOG] Update remote origin repo"
             git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git
