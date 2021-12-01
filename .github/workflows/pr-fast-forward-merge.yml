@@ -59,7 +59,7 @@ jobs:
                 "state": "failure",
                 "context": "failed to fast forward",
                 "description": "PR fast forward workflow error",
-                "target_url": "$TARGET_URL"
+                "target_url": "\"$TARGET_URL\""
               }'
 
             echo "ERROR => PR fast forward error."
