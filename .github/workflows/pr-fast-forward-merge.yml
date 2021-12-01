@@ -55,12 +55,12 @@ jobs:
             curl --location --request POST "$URL" \
               --header "Authorization: Bearer $ACCESS_TOKEN" \
               --header 'Content-Type: application/json' \
-              --data-raw '{
+              --data-raw "'{
                 "state": "failure",
                 "context": "failed to fast forward",
                 "description": "PR fast forward workflow error",
-                "target_url": "\"$TARGET_URL\""
-              }'
+                "target_url": "$TARGET_URL"
+              }'"
 
             echo "ERROR => PR fast forward error."
             exit 1
