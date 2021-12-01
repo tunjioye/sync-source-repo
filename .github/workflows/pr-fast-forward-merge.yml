@@ -50,7 +50,7 @@ jobs:
 
           else
             URL=https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}
-            TARGET_URL=https://github.com/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true
+            TARGET_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             curl --location --request POST "$URL" \
               --header "Authorization: Bearer $ACCESS_TOKEN" \
